@@ -24,6 +24,7 @@ async def on_ready():
 async def test_command(interaction: discord.Interaction, message: str):
     await interaction.response.send_message(f'This is a test command. You entered: {message}')
 
+@commands.has_permissions(administrator=True)
 @client.tree.command(name='reset_all_scores', description='Reset every user\'s score to zero.')
 async def reset_All_Scores(interaction: discord.Interaction):
     for user in score:
@@ -32,7 +33,6 @@ async def reset_All_Scores(interaction: discord.Interaction):
         user[3] = 0
         user[4] = 0
     await interaction.response.send_message(f'All scores have been reset to zero.')
-
 
 @client.tree.command(name='print_all_scores', description='Display every score.')
 async def print_All_Scores(interaction: discord.Interaction):
