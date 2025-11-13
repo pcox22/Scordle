@@ -2,7 +2,7 @@
 A passion-project discord bot meant to tally up scores for various idle guessing games (idles). The bot is in beta at this stage of development, and only supports results from Narutodle.net and Smashdle.net.
 
 ### Description
-This program began as a text channel on Discord where friends would post their results from specific idles. I had the idea to surprise them by upping the stakes and making things more interesting by allocating a score based on our performance. Currently, Scordle is a simple Python program using the Discord API and perform the following functions:
+This program began as a text channel on Discord where friends would post their results from specific idles. I had the idea to surprise them by upping the stakes and making things more interesting by allocating a score based on our performance. Currently, Scordle is a simple Python program using the Discord API and performs the following functions:
 
 - Allow members to register for the service using the '/register' command.
   - Registering will create a new List for the user with a format mentioned later in this document
