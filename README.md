@@ -32,3 +32,22 @@ It's worth noting that instead of using a 2D array, I could have created a playe
 
 ### Sharing
 Scoredle is my first ever interation with the Discord API. It is also the second time I've ever addeed any bot to the server, so it is redundant to say that I'm new to the scene. I am open to other people using this bot, or at least creating their own bot using my Source Code. So long as you don't call '/steal_social_security_number' I won't have any gripes.
+
+### Commands
+Commands are as follows:
+- reset_all_scores
+  - Navigates through every player in the master list and resets all their scores to 0. It *should* require admin privileges.
+- print_all_scores
+  - Self-Explanatory: In order of registration, prints each user and their scores for each idle.
+- register
+  - As aforementioned, creates a list for the player calling the command, enabling them to use the play commands.
+- clear_all
+  - COMPLETELY resets the score list. Requires admin privileges (probably).
+- narutodle
+  - Takes 1 input; it should be the result string provided by Narutodle.net after completing all categories. Will tally up points based on number of guesses in each category.
+- smashdle
+  - See narutodle, but change naruto to smash
+- rank_naruto
+  - Implements bubble sorting (we all get lazy) to sort a deep copy of the score list by descending order of the Narutodle Score.
+- rank_smash
+  - See previous command, replace naruto with smash.
