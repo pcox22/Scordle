@@ -1,7 +1,9 @@
+import time
 import discord
 from discord import app_commands
 from discord.ext import commands
 from datetime import date
+import threading
 import copy
 from cryptography.fernet import Fernet
 
@@ -12,13 +14,22 @@ client = commands.Bot(command_prefix="!", intents=intents)
 
 score = []
 
+today = date.today()
+def resetDate():
+    while True:
+        time.sleep(86400)
+        today = date.today()
+
+dateThread = threading.Thread(target=resetDate())
+
+
 
 @client.event
 async def on_ready():
     print("bot is ready")
-
     synced = await client.tree.sync()
     print(f"Synced {len(synced)} command(s)")
+    dateThread.start()
 
 @client.tree.command(name='test', description='This is a test slash-command.')
 async def test_command(interaction: discord.Interaction, message: str):
@@ -72,6 +83,10 @@ async def clear_All(interaction: discord.Interaction):
     score = []
     await interaction.response.send_message(f'EVERY Score has been deleted. Mwah ha ha.')
 
+@commands.has_permissions(administrator=True)
+@client.tree.command(name='end_game', description='Announce scored and reset winners. Consult players first.')
+async def end_Game(interaction: discord.Interaction):
+    pass
 
 # Begin The Idle Programming
 @client.tree.command(name="narutodle", description="Tally your score for the daily Narutodle.")
@@ -83,7 +98,6 @@ async def Narutodle(interaction: discord.Interaction, content: str):
 
     print(content)
     username = interaction.user.display_name
-    today = date.today()
 
     i = -1
 
@@ -171,13 +185,13 @@ async def Narutodle(interaction: discord.Interaction, content: str):
             eyeScore = (11 - int(curScore))
 
         if classicScore % 1 != 0 or jutsuScore % 1 != 0 or quoteScore % 1 != 0 or eyeScore % 1 != 0:
-            await interaction.response.send_message(f"Something went wrong calculating you score.\nPlease verify you are copying the string correctly.")
+            await interaction.response.send_message(f"Something went wrong calculating your score.\nPlease verify you are copying the string correctly.")
 
         else:
             totalScore = classicScore + jutsuScore + quoteScore + eyeScore
             score[i][1] += totalScore
             score[i][5] = today
-            await interaction.response.send_message(f"You gained {totalScore} points for the Narutodle on {today}. \nYou now have {score[i][1]} total Naurtodle points.")
+            await interaction.response.send_message(f"You gained {totalScore} points for the Narutodle on {today}. \nYou now have {score[i][1]} total Naurtodle points.\n||Classic: {21 - classicScore}\nJutsu: {11 - jutsuScore}\nQuote: {16 - quoteScore}\nEye: {11 - eyeScore}||")
 
 
     except Exception as e:
@@ -188,9 +202,7 @@ async def Narutodle(interaction: discord.Interaction, content: str):
 
 @client.tree.command(name="smasdhle", description="Tally your score for today's smashdle.")
 async def Smashdle(interaction: discord.Interaction, content: str):
-    print(content)
     username = interaction.user.display_name
-    today = date.today()
 
     i = -1
 
@@ -295,14 +307,225 @@ async def Smashdle(interaction: discord.Interaction, content: str):
 
         if classicScore % 1 != 0 or finalSmashScore % 1 != 0 or kirbyScore % 1 != 0 or emojiScore % 1 != 0 or silhScore % 1 != 0:
             await interaction.response.send_message(
-                f"Something went wrong calculating you score.\nPlease verify you are copying the string correctly.")
+                f"Something went wrong calculating your score.\nPlease verify you are copying the string correctly.")
 
         else:
             totalScore = classicScore + finalSmashScore + kirbyScore + emojiScore + silhScore
             score[i][2] += totalScore
             score[i][6] = today
+            await interaction.response.send_message(f"You gained {totalScore} points for the Smashdle on {today}. \nYou now have {score[i][2]} total Smashdle points.\n||Classic: {21 - classicScore}\nFinal Smash: {11 - finalSmashScore}\nKirby: {6 - kirbyScore}\nEmoji: {11 - emojiScore}\nSilhouette: {11 - silhScore}||")
+
+    except Exception as e:
+        await interaction.response.send_message(f"Something is off... Have the Dev check the debug log.")
+        print(e)
+
+@client.tree.command(name="pokedle", description="Tally your score for today's pokedle.")
+async def Pokedle(interaction: discord.Interaction, content: str):
+    #print(content)
+    username = interaction.user.display_name
+
+    i = -1
+
+    classicScore = 0.1
+    cardScore = 0.1
+    descScore = 0.1
+    silhScore = 0.1
+
+    isRegistered = False
+
+    try:
+        for index in range(len(score)):
+            if score[index][0] == username:
+                i = index
+                isRegistered = True
+
+        if not isRegistered:
+            await interaction.response.send_message(f"Please call /register to play Scoredle.")
+            return
+
+        if score[i][7] == today:
             await interaction.response.send_message(
-                f"You gained {totalScore} points for the Smashdle on {today}. \nYou now have {score[i][2]} total Smashdle points.")
+                f"{username}, you cheater! You've already done the Pokedle today!")
+            return
+
+        # Classic Calculation
+        index = content.find("Classic: ")
+        curScore = ""
+        if index != -1:
+            index += 9
+            while content[index].isdigit():
+                curScore += content[index]
+                index += 1
+
+            if int(curScore) > 10:
+                curScore = "10"
+
+            classicScore = (21 - (int(curScore)))
+
+        # Card Calculation
+        index = content.find("Card: ")
+        curScore = ""
+        if index != -1:
+            index += 6
+
+        while content[index].isdigit():
+            curScore += content[index]
+            index += 1
+
+            if int(curScore) > 10:
+                curScore = "10"
+
+            cardScore = (16 - int(curScore))
+
+        # Description Calculation
+        index = content.find("Description: ")
+        curScore = ""
+        if index != -1:
+            index += 13
+
+        while content[index].isdigit():
+            curScore += content[index]
+            index += 1
+
+            if int(curScore) > 10:
+                curScore = "10"
+
+            descScore = (11 - int(curScore))
+
+        # Silhouette Calculation
+        index = content.find("Silhouette: ")
+        curScore = ""
+        if index != -1:
+            index += 12
+
+        while content[index].isdigit():
+            curScore += content[index]
+            index = 1
+            if index > len(content):
+                break
+
+            if int(curScore) > 10:
+                curScore = "10"
+
+            silhScore = (11 - int(curScore))
+
+        if classicScore % 1 != 0 or cardScore % 1 != 0 or descScore % 1 != 0 or silhScore % 1 != 0:
+            await interaction.response.send_message(
+                f"Something went wrong calculating your score.\nPlease verify you are copying the string correctly.")
+
+        else:
+            totalScore = classicScore + cardScore + descScore + silhScore
+            score[i][3] += totalScore
+            score[i][7] = today
+            await interaction.response.send_message(
+                f"You gained {totalScore} points for the Pokedle on {today}. \nYou now have {score[i][3]} total Pokedle points.\n||Classic: {21 - classicScore}\nCard: {16 - cardScore}\nDescription: {11 - descScore}\nSilhouette: {11 - silhScore}||")
+
+
+
+    except Exception as e:
+        await interaction.response.send_message(f"Something is off... Have the Dev check the debug log.")
+        print(e)
+
+@client.tree.command(name="onepiecedle", description="Tally your score for today's onepiecedle.")
+async def Onepiecedle(interaction: discord.Interaction, content: str):
+    username = interaction.user.display_name
+
+    i = -1
+
+    classicScore = 0.1
+    devilFruitScore = 0.1
+    wantedScore = 0.1
+    laughScore = 0.1
+
+    isRegistered = False
+
+    try:
+        for index in range(len(score)):
+            if score[index][0] == username:
+                i = index
+                isRegistered = True
+
+        if not isRegistered:
+            await interaction.response.send_message(f"Please call /register to play Scoredle.")
+            return
+
+        if score[i][8] == today:
+            await interaction.response.send_message(
+                f"{username}, you cheater! You've already done the Onepiecedle today!")
+            return
+
+        # Classic Calculation
+        index = content.find("Classic: ")
+        curScore = ""
+        if index != -1:
+            index += 9
+            while content[index].isdigit():
+                curScore += content[index]
+                index += 1
+
+            if int(curScore) > 10:
+                curScore = "10"
+
+            classicScore = (21 - (int(curScore)))
+
+        # Devil Fruit Calculation
+        index = content.find("ruit: ") # Shortened to avoid errors
+        curScore = ""
+        if index != -1:
+            index += 6
+
+        while content[index].isdigit():
+            curScore += content[index]
+            index += 1
+
+            if int(curScore) > 10:
+                curScore = "10"
+
+            devilFruitScore = (16 - int(curScore))
+
+        # Wanted Calculation
+        index = content.find("Wanted: ")
+        curScore = ""
+        if index != -1:
+            index += 8
+
+        while content[index].isdigit():
+            curScore += content[index]
+            index += 1
+
+            if int(curScore) > 10:
+                curScore = "10"
+
+            wantedScore = (11 - int(curScore))
+
+        # Laugh Calculation
+        index = content.find("Laugh: ")
+        curScore = ""
+        if index != -1:
+            index += 7
+
+        while content[index].isdigit():
+            curScore += content[index]
+            index = 1
+            if index > len(content):
+                break
+
+            if int(curScore) > 10:
+                curScore = "10"
+
+            laughScore = (11 - int(curScore))
+
+        if classicScore % 1 != 0 or wantedScore % 1 != 0 or devilFruitScore % 1 != 0 or laughScore % 1 != 0:
+            await interaction.response.send_message(
+                f"Something went wrong calculating your score.\nPlease verify you are copying the string correctly.")
+
+        else:
+            totalScore = classicScore + wantedScore + devilFruitScore + laughScore
+            score[i][4] += totalScore
+            score[i][8] = today
+            await interaction.response.send_message(
+                f"You gained {totalScore} points for the Onepiecedle on {today}. \nYou now have {score[i][4]} total Onepiecedle points.\n||Classic: {21 - classicScore}\nDevil Fruit: {16 - devilFruitScore}\nWanted: {11 - wantedScore}\nLaugh: {11 - laughScore}||")
+
 
 
     except Exception as e:
@@ -329,6 +552,28 @@ async def SmashdleRanking(interaction: discord.Interaction):
     results = ""
     for i in range(len(players)):
         results += (f"{i + 1}: {players[i][0]} - {players[i][2]} Points [Last Played: {players[i][6]}]\n")
+
+    await interaction.response.send_message(f"{results}")
+
+@client.tree.command(name="rank_pokemon", description="View a ranking of Pokedle Player's scores in Descending order.")
+async def PokedleRanking(interaction: discord.Interaction):
+    players = copy.deepcopy(score)
+
+    players = sort_pokedle(players)
+    results = ""
+    for i in range(len(players)):
+        results += (f"{i + 1}: {players[i][0]} - {players[i][3]} Points [Last Played: {players[i][7]}]\n")
+
+    await interaction.response.send_message(f"{results}")
+
+@client.tree.command(name="rank_onepiece", description="View a ranking of Smashdle Player's scores in Descending order.")
+async def OnePieceRanking(interaction: discord.Interaction):
+    players = copy.deepcopy(score)
+
+    players = sort_onepiecedle(players)
+    results = ""
+    for i in range(len(players)):
+        results += (f"{i + 1}: {players[i][0]} - {players[i][4]} Points [Last Played: {players[i][8]}]\n")
 
     await interaction.response.send_message(f"{results}")
 
@@ -361,5 +606,43 @@ def sort_smashdle(arr):
 
     return arr
 
+def sort_pokedle(arr):
+    n = len(arr)
+    for i in range(n):
+        swapped = False
 
-client.run("Your_Token")
+        for j in range(0, n - i - 1):
+            if arr[j][3] < arr[j + 1][3]:
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+                swapped = True
+
+        if not swapped:
+            break
+
+    return arr
+
+def sort_onepiecedle(arr):
+    n = len(arr)
+    for i in range(n):
+        swapped = False
+
+        for j in range(0, n - i - 1):
+            if arr[j][4] < arr[j + 1][4]:
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+                swapped = True
+
+        if not swapped:
+            break
+
+    return arr
+
+cipher_suite = Fernet(b'v-dCv0J2E4R2acNwt_atbuGftyIED_25SovOCMiSuB8=')
+superSecret = cipher_suite.decrypt(b'gAAAAABpFkRrOzgnLV7xhRPjkJpBFzGR1FhbrXFVG3bsJbmpslnYow1k5ghcaTkY7MfKwjqzLOEZRF0CfkFzHqwjhTy_C1gTZ7QXMc4zJUqkvKTixL5m42y2B8KDxaole18VJ1FzFxvNZZzDWqEcLxuCRfAOOgH5QLBjl16nxzQmNuKYA9Zjgrk=')
+superSecret = str(superSecret).replace('\'', '\"', -1)
+constructed = ""
+for i in range(len(superSecret)):
+    if i != 0 and i != 1 and i != len(superSecret) - 1:
+        constructed += superSecret[i]
+
+#print(constructed)
+client.run(constructed)
