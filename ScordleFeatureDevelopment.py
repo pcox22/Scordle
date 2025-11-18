@@ -1,3 +1,8 @@
+# This file contains test implementations so that the original
+# file can remain active and stable while testing occurs.
+# It is run through a separate bot, and hopefully is never pushed to GitHub anyways. Oh. Whoops.
+
+
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -177,7 +182,7 @@ async def Narutodle(interaction: discord.Interaction, content: str):
             totalScore = classicScore + jutsuScore + quoteScore + eyeScore
             score[i][1] += totalScore
             score[i][5] = today
-            await interaction.response.send_message(f"You gained {totalScore} points for the Narutodle on {today}. \nYou now have {score[i][1]} total Naurtodle points.")
+            await interaction.response.send_message(f"You gained {totalScore} points for the Narutodle on {today}. \nYou now have {score[i][1]} total Naurtodle points.\n||Classic: {21 - classicScore}\nJutsu: {11 - jutsuScore}\nQuote: {16 - quoteScore}\nEye: {11 - eyeScore}||")
 
 
     except Exception as e:
@@ -360,6 +365,5 @@ def sort_smashdle(arr):
             break
 
     return arr
-
 
 client.run("Your_Token")
