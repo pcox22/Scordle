@@ -5,6 +5,7 @@ from discord.ext import commands
 from datetime import date
 import threading
 import copy
+import time
 from cryptography.fernet import Fernet
 
 
@@ -18,17 +19,15 @@ today = date.today()
 def resetDate():
     while True:
         time.sleep(86400)
+        global today
         today = date.today()
-
-dateThread = threading.Thread(target=resetDate())
-
-
 
 @client.event
 async def on_ready():
     print("bot is ready")
     synced = await client.tree.sync()
     print(f"Synced {len(synced)} command(s)")
+    dateThread = threading.Thread(target=resetDate, daemon=True)
     dateThread.start()
 
 @client.tree.command(name='test', description='This is a test slash-command.')
@@ -86,17 +85,64 @@ async def clear_All(interaction: discord.Interaction):
 @commands.has_permissions(administrator=True)
 @client.tree.command(name='end_game', description='Announce scored and reset winners. Consult players first.')
 async def end_Game(interaction: discord.Interaction):
-    pass
+    # Idle Channel in the main server
+    targetChannel = client.get_channel(1437977781387530393)
+    await interaction.response.send_message(f"{interaction.user.display_name} has reset the scores. \nLet the games (re) start!")  # <--- FIX
+
+    # Testing Channel in the bot server
+    # targetChannel = client.get_channel(1437574055371735163)
+    if targetChannel:
+        await targetChannel.send(f"{interaction.user.display_name} has ended the game, and the scores are in! Here are the results: ")
+        narutoScore = sort_narutodle(copy.deepcopy(score))
+        smashScore = sort_smashdle(copy.deepcopy(score))
+        pokeScore = sort_pokedle(copy.deepcopy(score))
+        onePieceScore = sort_onepiecedle(copy.deepcopy(score))
+
+        await targetChannel.send(f"Naruto 🌀")
+        for i in range(len(narutoScore)):
+            if i == 3:
+                break
+            if i == 0:
+                await targetChannel.send(f"{i + 1}: {narutoScore[i][0]} - {narutoScore[i][1]} - WINNER")
+            else:
+                await targetChannel.send(f"{i + 1}: {narutoScore[i][0]} - {narutoScore[i][1]}")
+
+        await targetChannel.send(f"Smash 💥:")
+        for i in range(len(smashScore)):
+            if i == 3:
+                break
+            if i == 0:
+                await targetChannel.send(f"{i + 1}: {smashScore[i][0]} - {smashScore[i][2]} - WINNER")
+            else:
+                await targetChannel.send(f"{i + 1}: {smashScore[i][0]} - {smashScore[i][2]}")
+
+        await targetChannel.send(f"Pokemon 🔴:")
+        for i in range(len(pokeScore)):
+            if i == 3:
+                break
+            if i == 0:
+                await targetChannel.send(f"{i + 1}: {pokeScore[i][0]} - {pokeScore[i][3]} - WINNER")
+            else:
+                await targetChannel.send(f"{i + 1}: {pokeScore[i][0]} - {pokeScore[i][3]}")
+
+        await targetChannel.send(f"One Piece 🍇:")
+        for i in range(len(onePieceScore)):
+            if i == 3:
+                break
+            if i == 0:
+                await targetChannel.send(f"{i + 1}: {onePieceScore[i][0]} - {onePieceScore[i][4]} - WINNER")
+            else:
+                await targetChannel.send(f"{i + 1}: {onePieceScore[i][0]} - {onePieceScore[i][4]}")
+
+        for i in range(len(score)):
+            score[i][1] = 0
+            score[i][2] = 0
+            score[i][3] = 0
+            score[i][4] = 0
 
 # Begin The Idle Programming
 @client.tree.command(name="narutodle", description="Tally your score for the daily Narutodle.")
 async def Narutodle(interaction: discord.Interaction, content: str):
-    for user in score:
-        for value in user:
-            print(value, end=" ")
-        print()
-
-    print(content)
     username = interaction.user.display_name
 
     i = -1
@@ -191,7 +237,7 @@ async def Narutodle(interaction: discord.Interaction, content: str):
             totalScore = classicScore + jutsuScore + quoteScore + eyeScore
             score[i][1] += totalScore
             score[i][5] = today
-            await interaction.response.send_message(f"You gained {totalScore} points for the Narutodle on {today}. \nYou now have {score[i][1]} total Naurtodle points.\n||Classic: {21 - classicScore}\nJutsu: {11 - jutsuScore}\nQuote: {16 - quoteScore}\nEye: {11 - eyeScore}||")
+            await interaction.response.send_message(f"You gained {totalScore} points for the Narutodle on {today}. \nYou now have {score[i][1]} total Naurtodle points.\n||❓ Classic: {21 - classicScore}\n🌀 Jutsu: {11 - jutsuScore}\n💬 Quote: {16 - quoteScore}\n👀 Eye: {11 - eyeScore}||")
 
 
     except Exception as e:
@@ -313,7 +359,7 @@ async def Smashdle(interaction: discord.Interaction, content: str):
             totalScore = classicScore + finalSmashScore + kirbyScore + emojiScore + silhScore
             score[i][2] += totalScore
             score[i][6] = today
-            await interaction.response.send_message(f"You gained {totalScore} points for the Smashdle on {today}. \nYou now have {score[i][2]} total Smashdle points.\n||Classic: {21 - classicScore}\nFinal Smash: {11 - finalSmashScore}\nKirby: {6 - kirbyScore}\nEmoji: {11 - emojiScore}\nSilhouette: {11 - silhScore}||")
+            await interaction.response.send_message(f"You gained {totalScore} points for the Smashdle on {today}. \nYou now have {score[i][2]} total Smashdle points.\n||❓ Classic: {21 - classicScore}\n💥 Final Smash: {11 - finalSmashScore}\n🌬️ Kirby: {6 - kirbyScore}\n🍄 Emoji: {11 - emojiScore}\n👤 Silhouette: {11 - silhScore}||")
 
     except Exception as e:
         await interaction.response.send_message(f"Something is off... Have the Dev check the debug log.")
@@ -321,7 +367,6 @@ async def Smashdle(interaction: discord.Interaction, content: str):
 
 @client.tree.command(name="pokedle", description="Tally your score for today's pokedle.")
 async def Pokedle(interaction: discord.Interaction, content: str):
-    #print(content)
     username = interaction.user.display_name
 
     i = -1
@@ -418,7 +463,7 @@ async def Pokedle(interaction: discord.Interaction, content: str):
             score[i][3] += totalScore
             score[i][7] = today
             await interaction.response.send_message(
-                f"You gained {totalScore} points for the Pokedle on {today}. \nYou now have {score[i][3]} total Pokedle points.\n||Classic: {21 - classicScore}\nCard: {16 - cardScore}\nDescription: {11 - descScore}\nSilhouette: {11 - silhScore}||")
+                f"You gained {totalScore} points for the Pokedle on {today}. \nYou now have {score[i][3]} total Pokedle points.\n||❓ Classic: {21 - classicScore}\n🃏 Card: {16 - cardScore}\n📄 Description: {11 - descScore}\n👤 Silhouette: {11 - silhScore}||")
 
 
 
@@ -524,7 +569,7 @@ async def Onepiecedle(interaction: discord.Interaction, content: str):
             score[i][4] += totalScore
             score[i][8] = today
             await interaction.response.send_message(
-                f"You gained {totalScore} points for the Onepiecedle on {today}. \nYou now have {score[i][4]} total Onepiecedle points.\n||Classic: {21 - classicScore}\nDevil Fruit: {16 - devilFruitScore}\nWanted: {11 - wantedScore}\nLaugh: {11 - laughScore}||")
+                f"You gained {totalScore} points for the Onepiecedle on {today}. \nYou now have {score[i][4]} total Onepiecedle points.\n||❓ Classic: {21 - classicScore}\n🍇 Devil Fruit: {16 - devilFruitScore}\n💰 Wanted: {11 - wantedScore}\n🤣 Laugh: {11 - laughScore}||")
 
 
 
