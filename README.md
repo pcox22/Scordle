@@ -63,7 +63,7 @@ Commands are as follows:
   - See previous command, replace naruto with pokemon.
 - rank_onepiece
   - See previous command, replace naruto with one piece.
- 
+  
 ### Hosting 
 Scordle is currently hosted in a production environment using Railway.com - I'm currently using their 1-month free plan. My understanding (which will be updated out in about 23 days) is that the bot will be freely hosted until the trial ends, or it exceeds the free-use memory. While I'm not familiar with actual resource prices, Railway has indicated that only ¢10 worth of memory has been expended after running the bot continously for over a week.
 
